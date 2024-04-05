@@ -1,0 +1,627 @@
+'''
+Authors: Tanvi Khadse & Bincy Lawrence
+Purpose: GPA Calculator
+Date:04/05/2024
+'''
+
+
+import tkinter as tk
+from tkinter import VERTICAL, messagebox
+from tkinter import Toplevel, ttk
+import csv
+
+total_credits = 0
+cumulative_unweighted_gpa = 0
+cumulative_weighted_gpa = 0
+
+#this function creates a help tab that informs users on how to use the Entry boxes
+def configure_scroll_region(event):
+    canvas.configure(scrollregion=canvas.bbox("all"))
+   
+def _on_mouse_wheel(event):
+    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+def display_help():
+    last_row = 0
+    help_tab = tk.Frame(notebook)
+    notebook.add(help_tab, text="Help")
+
+    canvas = tk.Canvas(help_tab, width=1000, height=725)
+    canvas.config(scrollregion=canvas.bbox("all"))
+
+    canvas.grid(row=last_row, column=0, sticky="nsew")
+
+
+    scrollbar = tk.Scrollbar(help_tab, orient="vertical", command=canvas.yview)
+    scrollbar.grid(row=last_row, column=1, sticky="ns")
+    canvas.config(yscrollcommand=scrollbar.set)
+
+    inner_frame = tk.Frame(canvas)
+    canvas.create_window((0, 0), window=inner_frame, anchor="nw")
+
+    inner_frame.bind("<Configure>", configure_scroll_region)
+    canvas.bind_all("<MouseWheel>", _on_mouse_wheel)
+
+    heading_font = ('Helvetica', 30, 'bold')
+    regular_font = ('Helvetica', 20, 'bold')
+    wrap_length = 600
+
+
+    last_row += 1
+    tk.Label(inner_frame, text="Current GPA", font=heading_font).grid(row=last_row, column=0, padx=10, sticky="w")
+    last_row += 1
+    current_gpa_description = "This is where you may type in your current GPA and the amount of credits you've earned. It can make finding your new GPA much easier so that you only have to fill in a semester worth of information. If this is your first semester in high school, just put zeroes in all three boxes!"
+    tk.Label(inner_frame, text=current_gpa_description, font=regular_font, wraplength=wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+    tk.Label(inner_frame, text="Previous Credits", font=heading_font).grid(row=last_row, column=0, padx=10, sticky="w")
+    last_row += 1
+    previous_credits_description = "First, type in the total amount of credits in your transcript. It cannot be negative or over 38, because that is the most credits a person can have. If you failed a course, make sure you don't count it towards your credits! "
+    tk.Label(inner_frame, text=previous_credits_description, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10,  sticky="w")
+    last_row += 1
+
+    current_gpa_examples_text_credits = 'Examples: "10", "15.5", "22"'
+    tk.Label(inner_frame, text=current_gpa_examples_text_credits, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10,  sticky="w")
+    last_row += 1
+    
+    current_gpa_invalid_examples_text_credits = 'Invalid Inputs: "100", "-5", "39"'
+    tk.Label(inner_frame, text=current_gpa_invalid_examples_text_credits, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10,  sticky="w")
+    last_row += 1
+
+
+    tk.Label(inner_frame, text="Current GPAs", font=heading_font).grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+    current_gpas_description = "Next, enter your unweighted GPA and weighted GPA in the appropriate boxes. Your unweighed GPA will probably be the lower of the two, unless you've never taken an Honors course, where the two should be the same value. Your unweighted GPA cannot be negative or more than four. Your weighted GPA cannot be negative or more than five."
+    tk.Label(inner_frame, text=current_gpas_description, wraplength = wrap_length, font=regular_font, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    current_unweighted_gpa_valid_examples_text = 'Examples of valied unweighted GPAs: "1.5", "3.67", "4"'
+    tk.Label(inner_frame, text=current_unweighted_gpa_valid_examples_text, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+    current_unweighted_gpa_valid_examples_text = 'Examples of invalid unweighted GPAs: "-2", "4.01", "5"'
+    tk.Label(inner_frame, text=current_unweighted_gpa_valid_examples_text, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    current_weighted_gpa_valid_examples_text = 'Examples of valied weighted GPAs: "2.35", "4", "5"'
+    tk.Label(inner_frame, text=current_unweighted_gpa_valid_examples_text, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+    
+    current_unweighted_gpa_valid_examples_text = 'Examples of invalid weighted GPAs: "-2", "5.01", "6"'
+    tk.Label(inner_frame, text=current_unweighted_gpa_valid_examples_text, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    
+    tk.Label(inner_frame, text="Course Name", wraplength = wrap_length, font=heading_font, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    course_name_description = 'The Course Name entry box is not required to fill out, it\'s just to help you keep track. Do not count your P.E. or Driver\'s Ed classes as courses! These are not included in GPA calculation.'
+    tk.Label(inner_frame, text=course_name_description, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    course_name_examples_text = 'Examples: "Biology", "Algebra", "Spanish"'
+    tk.Label(inner_frame, text=course_name_examples_text, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    tk.Label(inner_frame, text="Grade", wraplength = wrap_length, font=heading_font, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    grade_description = 'The Grade entry box is for letter grades from A+ to F. It does not take percentages.'
+    tk.Label(inner_frame, text=grade_description, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    grade_examples_text = 'Examples: "A+", "D-", "F"'
+    tk.Label(inner_frame, text=grade_examples_text, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    grade_incorrect_examples_text = 'Invalid Inputs: "97", "E", "F-"'
+    tk.Label(inner_frame, text=grade_incorrect_examples_text, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    tk.Label(inner_frame, text="Course Type", wraplength = wrap_length, font=heading_font, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    course_type_description = 'The Course Type drop box only accepts the four options given. If you type it out, make sure you spell it correctly!'
+    tk.Label(inner_frame, text=course_type_description, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    course_type_examples_text = 'Examples: "Regular", "Accelerated", "AP", "Dual Credit"'
+    tk.Label(inner_frame, text=course_type_examples_text, font=regular_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    last_row += 1
+
+    emails = "Still need help? \n You can contact us at tanvik2027@gmail.com and bincy.landrews@gmail.com"
+    tk.Label(inner_frame, text=emails, font=regular_font, wraplength = wrap_length, justify='center').grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+
+    notebook.select(help_tab)
+
+#this function saves data the user entered into a text document
+def save_file():
+    global total_credits
+    global cumulative_unweighted_gpa
+    global cumulative_weighted_gpa
+
+    print ("Save File") 
+    print (f'{total_credits}|{cumulative_unweighted_gpa}|{cumulative_weighted_gpa}\n')
+
+    with open("gpacalc.gpac", "w") as file:
+        # Write current GPA details (top line)
+        file.write(f'{total_credits}|{cumulative_unweighted_gpa}|{cumulative_weighted_gpa}\n')
+
+    messagebox.showinfo("Data Saved!", "Data Saved!")
+ 
+#this function loads data from the text document into the entry boxes
+def read_file():
+    print("Reading file")
+    with open("gpacalc.gpac", "r") as file:
+        # Read current GPA details (top line)
+        line = file.readline()
+        data = line.split('|')
+        total_credits = float(data[0])
+        cumulative_unweighted_gpa = float(data[1])
+        cumulative_weighted_gpa = float(data[2])
+        print(data)
+    # Update GUI elements with loaded data
+    previous_credits.delete(0, "end")
+    previous_credits.insert(0, str(total_credits))
+    current_unweighted_GPA.delete(0, "end")
+    current_unweighted_GPA.insert(0, str(cumulative_unweighted_gpa))
+    current_weighted_GPA.delete(0, "end")
+    current_weighted_GPA.insert(0, str(cumulative_weighted_gpa))
+
+    print("Data Loaded!")
+
+    messagebox.showinfo("Data Loaded!", "Data Loaded!")
+
+
+
+#checks if the user entered valid input. If not, it opens a popup box that tells the user it is invalid
+def validation_check(input, acceptable_inputs, entry_box):
+    for acceptable_input in acceptable_inputs:
+        if input.lower() == acceptable_input.lower():
+            return True  # returns True if the input is found in the list
+    else:
+        if input == "":
+            input = "[no input]"
+        invalid_statement = f'{input} is not a valid input for {entry_box}. Press the "Help" button a the top right to find out what is acceptable'
+        messagebox.showinfo("Invalid Input", invalid_statement)
+        invalid_pic = tk.PhotoImage(file="sad.png")  
+        window.iconphoto(True, invalid_pic)
+        return False  # returns False if the input is not found in the list
+
+#checks if the user's input is in its acceptable range and also not an empty string. If not, it opens a popup that tells the user it is invalid.
+def validation_check_for_numbers(input, lower_bound, upper_bound, entry_box):
+    print (f'Input {input}')
+
+    if input != "" and (float(input) >= lower_bound and float(input) <= upper_bound):
+        return True #if the input is in an acceptable range it returns True.
+    else:
+        if input == "":
+            invalid_statement = f'[no input] is not a valid input for {entry_box}. Press the "Help" button a the top right to find out what is acceptable'
+            messagebox.showinfo("Invalid Input", invalid_statement)
+            invalid_pic = tk.PhotoImage(file="sad.png")  
+            window.iconphoto(True, invalid_pic)
+            return False #returns False if the input was empty
+
+        else:
+            invalid_statement = f'{input} is not a valid input for {entry_box}. Press the "Help" button a the top right to find out what is acceptable'
+        messagebox.showinfo("Invalid Input", invalid_statement)
+        invalid_pic = tk.PhotoImage(file="sad.png")  
+        window.iconphoto(True, invalid_pic)
+        return False #returns False if the input was not in the correct range
+
+
+
+#these variables keep track of how many semesters there are
+semester_number = 0
+#this variable is one more than what the last row used was so the next widget can go under it
+last_row = 0
+
+
+#these lists store information about the user's courses and semesters
+semester_courses = []
+all_semesters = []
+
+#list of labels and entry boxes 
+all_labels_and_boxes = []
+
+#this functions adds another row of data entry boxes for course information each time the user click the "Add Course" button
+def add_course():
+    global last_row
+    global all_labels_and_boxes
+
+
+    print(f"Sem course len: {len(semester_courses)}")
+
+    # creates data entry boxes and labels for course information
+    course_name_label = tk.Label(inner_frame, text="Course Name (optional)")
+    course_name_label.grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+    course_name = tk.Entry(inner_frame)
+    course_name.grid(row=last_row + 1, column=0, padx=10, pady=5, sticky="w")
+
+    grade_label = tk.Label(inner_frame, text="Grade")
+    grade_label.grid(row=last_row, column=1, padx=10, pady=5, sticky="w")
+    grade = tk.Entry(inner_frame)
+    grade.grid(row=last_row + 1, column=1, padx=10, pady=5)
+
+    course_type_label = tk.Label(inner_frame, text="Course Type")
+    course_type_label.grid(row=last_row, column=2, padx=10, pady=10, sticky="w")
+    course_type = ttk.Combobox(inner_frame, values=("Regular", "Accelerated", "AP", "Dual Credit"))
+    course_type.grid(row=last_row + 1, column=2, padx=10, pady=5, sticky="w")
+
+    # adds course information labels and entry boxes to the list
+    course_labels_and_boxes = [course_name_label, course_name, grade_label, grade, course_type_label, course_type]
+    
+    all_labels_and_boxes.append(course_labels_and_boxes)
+
+    course_info = [course_name, grade, course_type]
+    semester_courses.append([course_name, grade, course_type])
+    print(f"Sem course len2: {len(semester_courses)}")
+    
+    last_row += 2
+
+
+
+def delete_course():
+    global last_row
+    global all_labels_and_boxes
+    global all_semesters
+
+# Remove the last course from the current semester
+    if all_semesters:
+        print(f"semesters: {len(all_semesters)}")
+        print(f"courses in sem1: {len(all_semesters[0])}")
+        print(f"All semesters in deletion: {len(all_semesters[0])}")
+        if all_semesters[-1]:
+            print(f"deletion semetsres-1 : {len(all_semesters[-1])}")
+            if all_semesters[-1][-1]:
+                print(f"deletion course : {len(all_semesters[-1][-1])}")
+                all_semesters[-1].pop(-1)  
+
+    
+    
+    if all_labels_and_boxes:
+        if all_labels_and_boxes[-1]:
+            for item in all_labels_and_boxes[-1]:
+                if item:
+                    item.destroy()
+            all_labels_and_boxes.remove(all_labels_and_boxes[-1])
+
+    
+
+    print(f"Deletion - All Sememsters: {len(all_semesters)}")
+
+    # Adjust the row counter
+    last_row -= 2
+
+    
+
+
+
+
+
+
+#This function creates a new semester that the user can add more courses under
+def add_semester():
+    global all_semesters
+    global last_row
+    global semester_courses
+    global semester_number
+    
+    
+    
+    semester_courses = []
+    
+    print(f"Items in all_semesters: {len(all_semesters)}")
+    print(f"All semester lists: {all_semesters}")
+
+    #adds the semester course list to all semesters
+    all_semesters.append(semester_courses)
+        
+    semester_number += 1
+
+    tk.Label(inner_frame, text=f"Semester {semester_number}", font=("Helvetica", 20, "bold")).grid(row=last_row, column=0, columnspan=4, padx=10, pady=10, sticky="w")
+    last_row +=1
+
+    
+
+    add_course()
+
+
+    
+    
+#This takes the input the user entered as a paramter and returns its gpa value from 0 to 4
+def get_gpa_value(grade):
+    if grade.upper() == "A+" or grade.upper() == "A" or grade.upper() == "A-":
+        return 4.0
+    
+    elif grade.upper() == "B+":
+        return 3.67
+
+    elif grade.upper() == "B":
+        return 3.33
+            
+    elif grade.upper() == "B-":
+        return 3.0
+            
+    elif grade.upper() == "C+":
+        return 2.67
+            
+    elif grade.upper() == "C":
+        return 2.33
+            
+    elif grade.upper() == "C-":
+        return 2.0
+            
+    elif grade.upper() == "D+":
+        return 1.67
+            
+    elif grade.upper() == "D":
+        return 1.33
+            
+    elif grade.upper() == "D-":
+        return 1.0
+            
+    else:
+        return 0.0
+
+#validation checks the user's input and also displays the user's new GPA
+
+def display_gpa():
+    
+    print("Display GPA function called")
+#holds a boolean value so the computer knows whether or not to advance to the next step.
+    keep_going = True
+
+#these are added to as the lists are iterated through. They will be used to calculate the GPAs
+    total_gpa_values = 0
+    total_courses = 0
+    total_accelerated_courses = 0
+    print(f"Items in all_semesters: {len(all_semesters)}")
+
+    for semester in all_semesters:
+        for course in semester:
+            print(f"Course {total_courses}") 
+
+            #validation check for course information in each semester
+            if not validation_check(course[1].get().upper(), ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'], "Grade"):
+                keep_going = False
+            if not validation_check(course[2].get().title(), ['Regular', 'Accelerated', "AP", "Dual Credit"], "Course Type"):
+                keep_going = False
+            
+            total_gpa_values += get_gpa_value(course[1].get())
+            total_courses += 1
+
+            print(course[2].get())
+            if course[2].get().title() != "Regular":
+                total_accelerated_courses += 1
+
+#validation checks for the current GPA boxes.
+    if validation_check_for_numbers(current_unweighted_GPA.get(), 0,4, "Current Unweighted GPA") == False:
+        keep_going = False
+    
+    if validation_check_for_numbers(current_weighted_GPA.get(), 0,5, "Current Weighted GPA") == False:
+        keep_going = False
+
+    if validation_check_for_numbers(previous_credits.get(), 0, 38, "Previous Credits") == False:
+        keep_going = False
+
+
+#only continues if the data is valid
+
+    if keep_going:
+        
+        heading_font = ('Helvetica',30, 'bold')
+        subheading_font = ('Helvetica', 20, 'bold')
+        regular_font = ('Helvetica', 14, 'bold')
+        wrap_length = 600
+
+        # creates a new tab for displaying GPA
+        gpa_result_tab = tk.Frame(notebook)
+        notebook.add(gpa_result_tab, text="Your GPA Result")  
+        #tab1 = tk.Frame(notebook, bg='light blue')
+
+        print(f"Total GPA values: {total_gpa_values}")
+        print(f"Total courses: {total_courses}")
+        print(f"Total accelerated courses: {total_accelerated_courses}")
+        
+
+        #these will hold the real GPA values soon
+        global total_credits
+        global cumulative_unweighted_gpa
+        global cumulative_weighted_gpa
+
+        cumulative_unweighted_gpa = 0
+        cumulative_weighted_gpa = 0
+
+
+        #avoids the division by zero error 
+        if total_courses == 0:
+            cumulative_unweighted_gpa = 0
+        else:
+            
+            cumulative_unweighted_gpa = total_gpa_values / total_courses
+            
+            cumulative_unweighted_gpa = round(cumulative_unweighted_gpa, 2)
+
+        #avoids division by zero error
+        if total_courses == 0:
+            cumulative_weighted_gpa = 0
+        else:
+            cumulative_weighted_gpa = (total_gpa_values + total_accelerated_courses)/ total_courses
+            cumulative_weighted_gpa = round(cumulative_weighted_gpa, 2)
+
+        #varibals to caluclate the GPA
+        new_credits = total_courses/2 #this is because each course in my school only gives you half a credit per semester of a class
+        previous_credits_val = float(previous_credits.get())
+        total_credits = new_credits + previous_credits_val
+        current_unweighted_GPA_val = float(current_unweighted_GPA.get())
+        current_weighted_GPA_val = float(current_weighted_GPA.get())
+
+        #calculates the unweighted GPA
+        cumulative_unweighted_gpa = ((current_unweighted_GPA_val * previous_credits_val) + (cumulative_unweighted_gpa * new_credits))/ total_credits
+        cumulative_unweighted_gpa = round(cumulative_unweighted_gpa,2)
+        
+        #calculates the unweighetd GPA
+        cumulative_weighted_gpa = ((current_weighted_GPA_val * previous_credits_val) + (cumulative_weighted_gpa * new_credits))/ (previous_credits_val + new_credits)
+        cumulative_weighted_gpa = round(cumulative_weighted_gpa, 2)
+
+        describe_courses = ""
+        semester_count = 1
+        unknown_course_name_counter = 1
+        course_name = ""
+
+#First lines of unweighetd GPA report that display the old GPA and the new GPA
+        last_row = 0
+        tk.Button(gpa_result_tab, text="Save File", command=save_file).grid(row=last_row, column=0, padx=0, pady=0, sticky="e")
+        last_row += 1
+        tk.Label(gpa_result_tab, text="Your GPA Report:", font=heading_font).grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+        last_row += 1
+        tk.Label(gpa_result_tab, text=f"Unweighted:",font= subheading_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, sticky="w")
+        last_row += 1
+        tk.Label(gpa_result_tab, text=f"Your old cumulative unweighted GPA was {float(current_unweighted_GPA.get())}.",font=regular_font, wraplength = wrap_length, justify='left' ).grid(row=last_row, column=0, padx=5, pady=5, sticky="w")
+        last_row += 1
+        tk.Label(gpa_result_tab, text=f"Your new cumulative unweighted GPA is {cumulative_unweighted_gpa}.",font=regular_font, wraplength = wrap_length, justify='left' ).grid(row=last_row, column=0, padx=5, pady=5, sticky="w")
+
+
+
+
+
+
+        # Create a Treeview widget
+        tree = ttk.Treeview(gpa_result_tab, columns=('Course Name', 'Grade'))
+
+        # Define column headings
+        tree.heading('#0', text='Course Name')
+        tree.heading('#1', text='Grade')
+
+        # Insert course information into the tree
+        for semester in all_semesters:
+            for course in semester:
+                if course[0].get() == "":
+                    course_name = f"Unknown Course {unknown_course_name_counter}"
+                    unknown_course_name_counter += 1
+                else:
+                    course_name = course[0].get().title()
+                grade = course[1].get().title()
+                tree.insert('', 'end', text=course_name, values=(grade))
+
+        # Places the Treeview widget in the grid
+        last_row += 1
+        tree.grid(row=last_row, column=0, padx=10, pady=10, sticky="w")
+
+        #text about overall weighted GPA
+        last_row += 1
+        tk.Label(gpa_result_tab, text=f"Weighted:",font= subheading_font, wraplength = wrap_length, justify='left').grid(row=last_row, column=0, sticky="w")
+        last_row += 1
+        tk.Label(gpa_result_tab, text=f"Your old cumulative weighted GPA was {float(current_weighted_GPA.get())}.",font=regular_font, wraplength = wrap_length, justify='left' ).grid(row=last_row, column=0, padx=5, pady=5, sticky="w")
+        last_row += 1
+        tk.Label(gpa_result_tab, text=f"Your new cumulative weighted GPA is {cumulative_weighted_gpa}.",font=regular_font, wraplength = wrap_length, justify='left' ).grid(row=last_row, column=0, padx=5, pady=5, sticky="w")
+        
+        
+        # Create a Treeview widget
+        tree = ttk.Treeview(gpa_result_tab, columns=('Course Name', 'Grade', "Course Type"))
+
+        # Define column headings
+        tree.heading('#0', text='Course Name')
+        tree.heading('#1', text='Grade')
+        tree.heading('#2', text='Course Type')
+
+        # Insert course information into the tree
+        for semester in all_semesters:
+            for course in semester:
+                if course[0].get() == "":
+                    course_name = f"Unknown Course {unknown_course_name_counter}"
+                    unknown_course_name_counter += 1
+                else:
+                    course_name = course[0].get().title()
+                grade = course[1].get().title()
+                course_type = course[2].get().title()
+                tree.insert('', 'end', text=course_name, values=(grade, course_type))
+
+
+        # Places the Treeview widget in the grid
+        last_row += 1
+        tree.grid(row=last_row, column=0, padx=10, pady=10, sticky="w")
+
+        
+        #puts your overall GPA in a text and adds it to the tab
+
+        notebook.select(gpa_result_tab)
+
+
+#Creates the main window 
+window = tk.Tk()
+window.title("GPA Calculator")
+window.geometry('1075x800')
+notebook = ttk.Notebook(window)
+
+
+#creates a notebook for the tabs (course_information, help, and GPA) to go inside
+course_information_tab = tk.Frame(notebook)
+notebook.add(course_information_tab, text="Course Information")
+
+#creates the scrollbar
+canvas = tk.Canvas(course_information_tab, width=1000, height=725)
+canvas.grid(row=0, column=0, sticky="nsew")
+
+scrollbar = tk.Scrollbar(course_information_tab, orient="vertical", command=canvas.yview)
+scrollbar.grid(row=0, column=1, sticky="ns")
+canvas.config(yscrollcommand=scrollbar.set)
+
+inner_frame = tk.Frame(canvas)
+canvas.create_window((0, 0), window=inner_frame, anchor="nw")
+
+inner_frame.bind("<Configure>", configure_scroll_region)
+inner_frame.bind_all("<MouseWheel>", _on_mouse_wheel)
+
+
+#creates the help button at the top right
+tk.Button(inner_frame, text="Help", command=display_help).grid(row=0, column=4, padx=0, pady=0)
+last_row += 1
+
+#creates the save and load buttons next to the help button.
+
+tk.Button(inner_frame, text="Load File", command=read_file).grid(row=0, column=3, padx=0, pady=0, sticky="e")
+last_row += 1
+
+#creates the data entry boxes for the user's current GPAs and credits
+tk.Label(inner_frame, text="Previous Credits").grid(row=last_row, column=1, padx=10, pady=5, sticky="w")
+tk.Label(inner_frame, text="Unweighted").grid(row=last_row, column=2, padx=10, pady=5, sticky="w")
+tk.Label(inner_frame, text="Weighted").grid(row=last_row, column=3, padx=10, pady=5, sticky="w")
+last_row += 1
+tk.Label(inner_frame, text="Current GPA").grid(row=last_row, column=0, padx=10, pady=5, sticky="w")
+last_row += 1
+
+
+previous_credits = tk.Entry(inner_frame)
+previous_credits.grid(row=last_row, column=1, padx=10, pady=5, sticky="w")
+
+current_unweighted_GPA = tk.Entry(inner_frame)
+current_unweighted_GPA.grid(row=last_row, column=2, padx=10, pady=5, sticky="w")
+
+current_weighted_GPA = tk.Entry(inner_frame)
+current_weighted_GPA.grid(row=last_row, column=3, padx=10, pady=5, sticky="w")
+last_row += 1
+
+
+last_row += 4
+add_course_button = tk.Button(inner_frame, text="Add Course", command=add_course)
+add_course_button.grid(row=last_row, column=0, pady=5, sticky="w")
+#last_row += 1
+
+delete_course_button = tk.Button(inner_frame, text="Delete Course", command=delete_course)
+delete_course_button.grid(row=last_row, column=1, pady=5, sticky="w")
+#last_row += 1
+
+add_semester_button = tk.Button(inner_frame, text="Add Semester", command=add_semester)
+add_semester_button.grid(row=last_row, column=2, pady=5, sticky="w")
+#last_row += 1
+
+calculate_GPA_button = tk.Button(inner_frame, text="Calculate GPA", command=display_gpa)
+calculate_GPA_button.grid(row=last_row, column=3, pady=5, sticky="w")
+last_row += 2
+
+#adds the very first semester
+add_semester()
+
+
+notebook.pack(expand=True, fill='both')
+window.mainloop()
